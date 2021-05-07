@@ -3,12 +3,61 @@
  */
 package otta;
 
-public class App {
-    public String getGreeting() {
-        return "Hello world.";
-    }
+import otta.data.job.JobParser;
+import otta.data.reaction.ReactionParser;
+import otta.job.CompanyMatcher;
+import otta.user.UserMatcher;
 
-    public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+import java.io.File;
+import java.io.IOException;
+
+public class App {
+
+    private static final UserMatcher USER_MATCHER = new UserMatcher();
+    private static final CompanyMatcher COMPANY_MATCHER = new CompanyMatcher();
+    private static final ReactionParser REACTION_PARSER = new ReactionParser();
+    private static final JobParser JOB_PARSER = new JobParser();
+
+    private static final String root = System.getProperty("user.dir");
+
+    public static void main(String[] args) throws IOException {
+
+        String reactionsFileName = "reactions.csv";
+        String reactionsFilePath = root + File.separator + "data" + File.separator + reactionsFileName;
+
+        String jobsFileName = "jobs.csv";
+        String jobsFilePath = root + File.separator + "data" + File.separator + jobsFileName;
+
+        USER_MATCHER.scoreUsers(
+                USER_MATCHER
+                    .mapJobs(
+                        REACTION_PARSER.parse(reactionsFilePath)
+                    )
+        );
+
+        COMPANY_MATCHER.scoreCompanies(
+                COMPANY_MATCHER
+                    .mapUsers(
+                        REACTION_PARSER.parse(reactionsFilePath)
+                    ),
+                COMPANY_MATCHER
+                    .mapJobsToCompanies(
+                        JOB_PARSER.parse(jobsFilePath)
+                    )
+        );
+
+        System.out.println("Highest Score is: ");
+        System.out.println(USER_MATCHER.getHighestScore());
+        System.out.println("Between user: ");
+        System.out.println(USER_MATCHER.getUser1());
+        System.out.println("And user: ");
+        System.out.println(USER_MATCHER.getUser2());
+
+        System.out.println("Highest Score is: ");
+        System.out.println(COMPANY_MATCHER.getHighestScore());
+        System.out.println("Between company: ");
+        System.out.println(COMPANY_MATCHER.getHighestCompany1());
+        System.out.println("And company: ");
+        System.out.println(COMPANY_MATCHER.getHighestCompany2());
     }
 }
